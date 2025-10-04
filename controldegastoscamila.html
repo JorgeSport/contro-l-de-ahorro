@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financiero de Camila Florian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #F8F7FF; }
+        .main-title { background: -webkit-linear-gradient(45deg, #8B5CF6, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .card { background-color: rgba(255, 255, 255, 0.9); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px 0 rgba(139, 92, 246, 0.1); }
+        .btn-magic { background: linear-gradient(45deg, #8B5CF6, #D946EF); transition: all 0.3s ease; box-shadow: 0 4px 15px 0 rgba(236, 72, 153, 0.3); }
+        .btn-magic:hover { transform: translateY(-2px); box-shadow: 0 6px 20px 0 rgba(168, 85, 247, 0.4); }
+        .btn-income { background: linear-gradient(45deg, #10B981, #34D399); transition: all 0.3s ease; box-shadow: 0 4px 15px 0 rgba(16, 185, 129, 0.2); }
+        .btn-income:hover { transform: translateY(-2px); box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.3); }
+        .input-field, .select-field { background-color: #F8F7FF; border-color: #DDD6FE; transition: all 0.2s ease; }
+        .input-field:focus, .select-field:focus { box-shadow: 0 0 0 2px #C4B5FD; border-color: #A78BFA; outline: none; }
+        .progress-bar-bg { background-color: #E9D5FF; }
+        .progress-bar-fill { background: linear-gradient(90deg, #A78BFA, #F472B6); }
+        .action-btn { cursor: pointer; transition: transform 0.2s; opacity: 0.5; }
+        .action-btn:hover { opacity: 1; transform: scale(1.2); }
+        #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 100; left: 50%; transform: translateX(-50%); bottom: 30px; opacity: 0; transition: visibility 0.5s, opacity 0.5s linear; }
+        #toast.show { visibility: visible; opacity: 1; }
+        .modal-overlay { transition: opacity 0.3s ease; }
+        .modal-content { transition: transform 0.3s ease; }
+    </style>
+</head>
+<body class="text-gray-700">
+
+    <div class="container mx-auto p-4 md:p-6">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold main-title">Dashboard Financiero de Camila</h1>
+            <p class="text-lg text-gray-500 mt-2">✨ El centro de control de tu magia financiera ✨</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+            <!-- Columna Izquierda: Entradas y Metas -->
+            <aside class="lg:col-span-2 space-y-6">
+                <!-- Ingresos y Gastos -->
+                <div class="card p-6 rounded-2xl">
+                    <h2 class="text-xl font-semibold mb-4 text-purple-600">Movimientos del Mes</h2>
+                    <div class="space-y-6">
+                        <form id="income-form">
+                            <p class="font-medium text-gray-600 mb-2">Añadir nuevo ingreso:</p>
+                             <div class="grid grid-cols-2 gap-3"><input type="text" id="income-description" placeholder="Descripción" class="col-span-2 p-2.5 border rounded-lg input-field" required><input type="number" id="income-amount" placeholder="Importe (€)" step="0.01" class="col-span-2 p-2.5 border rounded-lg input-field" required></div>
+                            <button type="submit" class="w-full text-white font-bold py-3 px-4 rounded-lg btn-income mt-4">Añadir Ingreso</button>
+                        </form>
+                        <hr class="border-purple-100">
+                        <form id="expense-form">
+                            <p class="font-medium text-gray-600 mb-2">Añadir nuevo gasto:</p>
+                            <div class="grid grid-cols-2 gap-3"><input type="text" id="expense-description" placeholder="Descripción" class="col-span-2 p-2.5 border rounded-lg input-field" required><input type="number" id="expense-amount" placeholder="Importe (€)" step="0.01" class="p-2.5 border rounded-lg input-field" required><select id="expense-category" class="p-2.5 border rounded-lg select-field"><option>🛒 Comida</option> <option>🎬 Ocio</option> <option>🚌 Transporte</option> <option>🏠 Hogar</option> <option>🛍️ Compras</option> <option>❤️ Salud</option> <option>🎓 Formación</option> <option>❓ Otros</option></select></div>
+                            <button type="submit" class="w-full text-white font-bold py-3 px-4 rounded-lg btn-magic mt-4">Añadir Gasto</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Metas de Ahorro -->
+                <div class="card p-6 rounded-2xl">
+                    <h2 class="text-xl font-semibold mb-4 text-purple-600">Tus Metas Mágicas 🎯</h2>
+                    <div id="goals-list" class="space-y-4"></div>
+                    <button id="add-goal-btn" class="w-full text-purple-600 font-semibold py-2 px-4 rounded-lg border-2 border-purple-200 hover:bg-purple-50 transition mt-4">Añadir Nueva Meta</button>
+                </div>
+            </aside>
+
+            <!-- Columna Derecha: Dashboard y Gráficos -->
+            <section class="lg:col-span-3 space-y-6">
+                 <!-- CONSEJERO MÁGICO -->
+                <div class="card p-6 rounded-2xl">
+                    <h2 class="text-lg font-semibold mb-2 text-purple-600 flex items-center gap-2">
+                        <span class="text-2xl">🔮</span>
+                        <span>Consejero Mágico</span>
+                    </h2>
+                    <p id="magic-advice" class="text-gray-600 italic">Aquí aparecerán tus consejos personalizados...</p>
+                </div>
+
+                 <div class="grid grid-cols-2 gap-4">
+                    <div class="card p-4 rounded-2xl text-center">
+                        <p class="text-sm text-gray-500">Tendencia Mensual</p>
+                        <div id="stat-monthly-trend" class="flex items-center justify-center text-2xl font-bold"><span>--</span></div>
+                    </div>
+                    <div class="card p-4 rounded-2xl text-center"><p class="text-sm text-gray-500">Ahorro Actual</p><p id="stat-current-savings" class="text-2xl font-bold text-purple-600">€0.00</p></div>
+                    <div class="card p-4 rounded-2xl text-center"><p class="text-sm text-gray-500">Gasto Medio Diario</p><p id="stat-avg-daily-spend" class="text-2xl font-bold text-pink-500">€0.00</p></div>
+                    <div class="card p-4 rounded-2xl text-center"><p class="text-sm text-gray-500">Categoría Top</p><p id="stat-top-category" class="text-2xl font-bold text-purple-600">-</p></div>
+                </div>
+                <div class="card p-6 rounded-2xl">
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div><h3 class="text-lg font-semibold mb-2 text-gray-700">Desglose de Gastos del Mes</h3><div class="h-48 w-48 mx-auto"><canvas id="category-chart"></canvas></div></div>
+                        <div><h3 class="text-lg font-semibold mb-2 text-gray-700">Progreso Anual de Ahorro</h3><div class="h-48"><canvas id="savings-chart"></canvas></div></div>
+                    </div>
+                </div>
+                <div class="card p-6 rounded-2xl">
+                    <h2 class="text-xl font-semibold mb-4 text-purple-600">Historial de Movimientos</h2>
+                    <div id="movements-history" class="max-h-60 overflow-y-auto pr-2 space-y-2"></div>
+                     <button id="reset-month-btn" class="w-full text-pink-500 font-semibold py-3 px-4 rounded-lg border-2 border-pink-200 hover:bg-pink-50 transition mt-4">Finalizar y Empezar Nuevo Mes</button>
+                </div>
+            </section>
+        </main>
+        
+        <section class="mt-12">
+            <h2 class="text-3xl font-bold text-center mb-8 main-title">El Valor Mágico del Ahorro</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="card p-6 rounded-2xl"><h3 class="font-semibold text-lg text-purple-600 mb-2 flex items-center gap-2"><span class="text-2xl">💡</span> ¿Qué es Ahorrar?</h3><p class="text-gray-600 text-sm">Es mucho más que guardar dinero. Es la decisión consciente de reservar una parte de tus ingresos de hoy para construir la vida que quieres mañana. Es un acto de amor propio y planificación.</p></div>
+                <div class="card p-6 rounded-2xl"><h3 class="font-semibold text-lg text-purple-600 mb-2 flex items-center gap-2"><span class="text-2xl">💖</span> ¿Por Qué es Importante?</h3><ul class="text-gray-600 text-sm list-disc list-inside space-y-1"><li><strong>Seguridad:</strong> Para afrontar imprevistos sin estrés.</li><li><strong>Libertad:</strong> Para tomar decisiones sin depender del dinero.</li><li><strong>Sueños:</strong> Para hacer realidad tus grandes metas y proyectos.</li></ul></div>
+                <div class="card p-6 rounded-2xl"><h3 class="font-semibold text-lg text-purple-600 mb-2 flex items-center gap-2"><span class="text-2xl">🏆</span> Ejemplos de Poder</h3><p class="text-gray-600 text-sm">Tu ahorro se convierte en un fondo de emergencia, en las vacaciones de tus sueños, en la entrada de un piso, en formación para tu futuro o simplemente, en tranquilidad mental.</p></div>
+            </div>
+             <div class="mt-6 card p-6 rounded-2xl text-center bg-gradient-to-r from-purple-50 to-pink-50"><p class="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">"Cada euro que ahorras es un ladrillo más para construir el castillo de tus sueños. ¡Nunca subestimes el poder de los pequeños comienchos!"</p></div>
+        </section>
+
+        <footer class="mt-12 py-6 border-t border-purple-100 text-center text-gray-400 text-sm">
+            <p>Dashboard Financiero hecho con ✨ para Camila Florian</p>
+            <p>&copy; 2025 - Todos los derechos reservados</p>
+        </footer>
+
+    </div>
+
+    <div id="toast"></div>
+    <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal-overlay"><div id="modal-content" class="card p-8 rounded-2xl w-full max-w-sm transform scale-95 modal-content"><h2 class="text-xl font-bold text-gray-800 mb-4">¿Estás segura?</h2><p class="text-gray-600 mb-6">Esto archivará tu ahorro de este mes y limpiará los movimientos para que puedas empezar un nuevo mes.</p><div class="flex justify-end gap-4"><button id="modal-cancel" class="font-semibold py-2 px-5 rounded-lg text-gray-600 hover:bg-gray-100">Cancelar</button><button id="modal-confirm" class="font-bold py-2 px-5 rounded-lg bg-pink-500 text-white hover:bg-pink-600">Confirmar</button></div></div></div>
+    
+    <div id="goal-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 modal-overlay">
+        <div id="goal-modal-content" class="card p-8 rounded-2xl w-full max-w-sm transform scale-95 modal-content">
+            <h2 id="goal-modal-title" class="text-xl font-bold text-gray-800 mb-6">Nueva Meta Mágica</h2>
+            <form id="goal-form" class="space-y-4">
+                <input type="hidden" id="goal-id">
+                <div><label for="goal-name" class="block text-sm font-medium text-gray-500">Nombre de la meta</label><input type="text" id="goal-name" placeholder="Viaje a Japón ✈️" class="mt-1 w-full p-2.5 border rounded-lg input-field" required></div>
+                <div><label for="goal-target" class="block text-sm font-medium text-gray-500">Objetivo (€)</label><input type="number" id="goal-target" placeholder="3000" step="0.01" class="mt-1 w-full p-2.5 border rounded-lg input-field" required></div>
+                <div><label for="goal-saved" class="block text-sm font-medium text-gray-500">Ahorrado hasta ahora (€)</label><input type="number" id="goal-saved" placeholder="850" step="0.01" class="mt-1 w-full p-2.5 border rounded-lg input-field" required></div>
+                <div class="flex justify-end gap-4 pt-4"><button type="button" id="goal-modal-cancel" class="font-semibold py-2 px-5 rounded-lg text-gray-600 hover:bg-gray-100">Cancelar</button><button type="submit" class="font-bold py-2 px-5 rounded-lg bg-purple-500 text-white hover:bg-purple-600">Guardar Meta</button></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let state = {};
+        const datosDeEjemplo = {
+            incomes: [],
+            expenses: [],
+            goals: [],
+            annualSavings: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        };
+
+        const incomeForm = document.getElementById('income-form');
+        const expenseForm = document.getElementById('expense-form');
+        const toast = document.getElementById('toast');
+        const confirmModalOverlay = document.getElementById('modal-overlay');
+        const confirmModalContent = document.getElementById('modal-content');
+        const goalModalOverlay = document.getElementById('goal-modal-overlay');
+        const goalModalContent = document.getElementById('goal-modal-content');
+        const goalForm = document.getElementById('goal-form');
+
+        const savingsCtx = document.getElementById('savings-chart').getContext('2d');
+        const categoryCtx = document.getElementById('category-chart').getContext('2d');
+        let savingsChart, categoryChart;
+
+        function initCharts() {
+            savingsChart = new Chart(savingsCtx, { type: 'line', data: { labels: ['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'], datasets: [{ label: 'Ahorro', data: [], borderColor: '#A855F7', tension: 0.4, fill: false }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+            categoryChart = new Chart(categoryCtx, { type: 'doughnut', data: { labels: [], datasets: [{ data: [], backgroundColor: ['#8B5CF6', '#EC4899', '#3B82F6', '#10B981', '#F59E0B', '#6366F1', '#D946EF'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } } } });
+        }
+
+        function saveState() { localStorage.setItem('camilaFinancialDashboard', JSON.stringify(state)); }
+        function loadState() { const savedState = localStorage.getItem('camilaFinancialDashboard'); state = savedState ? JSON.parse(savedState) : datosDeEjemplo; }
+        function showToast(message) { toast.textContent = message; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }
+
+        function renderAll() { renderDashboard(); renderMagicAdvisor(); renderGoals(); renderMovementsHistory(); updateCharts(); saveState(); }
+        
+        function getMagicAdvice(state) {
+            const totalIncomes = state.incomes.reduce((sum, i) => sum + i.amount, 0);
+            const totalExpenses = state.expenses.reduce((sum, e) => sum + e.amount, 0);
+            const currentSavings = totalIncomes - totalExpenses;
+            
+            if (totalIncomes > 0 && currentSavings > 0) {
+                 if ((currentSavings / totalIncomes) >= 0.20) { return `¡Felicidades! Este mes ya has logrado ahorrar ${currentSavings.toFixed(2)}€, que es un ${((currentSavings / totalIncomes) * 100).toFixed(0)}% de tus ingresos. ¡Fantástico!`; }
+            }
+            if (currentSavings < 0) { return `¡Atención, Camila! Tus gastos superan tus ingresos en ${Math.abs(currentSavings).toFixed(2)}€. ¡Es momento de revisar el presupuesto!`; }
+
+            if (totalExpenses > 100) { 
+                const categorySpends = state.expenses.reduce((acc, e) => { acc[e.category] = (acc[e.category] || 0) + e.amount; return acc; }, {});
+                const topCategory = Object.keys(categorySpends).reduce((a, b) => categorySpends[a] > categorySpends[b] ? a : b, null);
+                if (topCategory && (categorySpends[topCategory] / totalExpenses) > 0.40) { return `La categoría '${topCategory}' ya representa el ${((categorySpends[topCategory] / totalExpenses) * 100).toFixed(0)}% de tus gastos del mes. Es tu punto principal a revisar.`; }
+            }
+            
+            for (const goal of state.goals) {
+                if (goal.saved < goal.target && (goal.target - goal.saved) < 200) { return `¡Estás a solo ${(goal.target - goal.saved).toFixed(0)}€ de conseguir tu meta '${goal.name}'! ¡Un último esfuerzo!`; }
+            }
+
+            if(state.incomes.length === 0 && state.expenses.length === 0) { return "¡Bienvenida a tu centro de control! Añade tu primer ingreso o gasto para empezar la magia."; }
+            return "Cada movimiento cuenta. Sigue registrando para mantener una visión clara de tus finanzas.";
+        }
+
+        function renderMagicAdvisor() { document.getElementById('magic-advice').textContent = getMagicAdvice(state); }
+
+        function renderDashboard() {
+            const totalIncomes = state.incomes.reduce((sum, i) => sum + i.amount, 0);
+            const totalExpenses = state.expenses.reduce((sum, e) => sum + e.amount, 0);
+            const currentSavings = totalIncomes - totalExpenses;
+            document.getElementById('stat-current-savings').textContent = `€${currentSavings.toFixed(2)}`;
+            const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+            const avgDailySpend = state.expenses.length > 0 ? totalExpenses / daysInMonth : 0;
+            document.getElementById('stat-avg-daily-spend').textContent = `€${avgDailySpend.toFixed(2)}`;
+            const categorySpends = state.expenses.reduce((acc, e) => { acc[e.category] = (acc[e.category] || 0) + e.amount; return acc; }, {});
+            const topCategory = Object.keys(categorySpends).reduce((a, b) => categorySpends[a] > categorySpends[b] ? a : b, '-');
+            document.getElementById('stat-top-category').textContent = topCategory.split(' ')[1] || '-';
+            const monthlyTrendEl = document.getElementById('stat-monthly-trend');
+            const lastMonthSavings = state.annualSavings[new Date().getMonth() - 1];
+            if (lastMonthSavings === undefined) { monthlyTrendEl.innerHTML = `<span>--</span>`; }
+            else {
+                if (lastMonthSavings <= 0) { monthlyTrendEl.innerHTML = currentSavings > 0 ? `<span class="text-green-500">▲ ∞%</span>` : `<span>--</span>`; }
+                else {
+                    const percentageChange = ((currentSavings - lastMonthSavings) / lastMonthSavings) * 100;
+                    if (percentageChange > 0) monthlyTrendEl.innerHTML = `<span class="text-green-500">▲ ${percentageChange.toFixed(0)}%</span>`;
+                    else if (percentageChange < 0) monthlyTrendEl.innerHTML = `<span class="text-red-500">▼ ${Math.abs(percentageChange).toFixed(0)}%</span>`;
+                    else monthlyTrendEl.innerHTML = `<span>→ 0%</span>`;
+                }
+            }
+        }
+
+        function renderGoals() {
+            const goalsList = document.getElementById('goals-list');
+            goalsList.innerHTML = '';
+            state.goals.forEach(goal => {
+                const percentage = Math.min((goal.saved / goal.target) * 100, 100);
+                goalsList.innerHTML += `<div class="goal-item"><div class="flex justify-between items-center text-sm mb-1"><span class="font-medium text-gray-700">${goal.name}</span><span class="text-gray-500">€${goal.saved.toFixed(0)} / €${goal.target.toFixed(0)}</span></div><div class="w-full progress-bar-bg rounded-full h-2.5 mb-2"><div class="progress-bar-fill h-2.5 rounded-full" style="width: ${percentage}%"></div></div><div class="flex justify-end items-center gap-3"><span class="action-btn" data-goal-id="${goal.id}" data-action="edit">✏️</span><span class="action-btn" data-goal-id="${goal.id}" data-action="delete">🗑️</span></div></div>`;
+            });
+        }
+        
+        function renderMovementsHistory() {
+            const historyContainer = document.getElementById('movements-history');
+            const allMovements = [...state.incomes.map(i => ({ ...i, type: 'income' })), ...state.expenses.map(e => ({ ...e, type: 'expense' }))].sort((a, b) => new Date(b.date) - new Date(a.date));
+            historyContainer.innerHTML = allMovements.length ? '' : '<p class="text-center text-gray-400 py-4">Aún no hay movimientos este mes.</p>';
+            allMovements.forEach(mov => {
+                const isIncome = mov.type === 'income'; const formattedDate = new Date(mov.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }); const icon = isIncome ? '💰' : mov.category.split(' ')[0]; const amountClass = isIncome ? 'text-green-500' : 'text-gray-800';
+                historyContainer.innerHTML += `<div class="flex justify-between items-center p-2 rounded-lg hover:bg-purple-50"><div class="flex items-center gap-3"><span class="text-2xl">${icon}</span><div><p class="font-medium text-gray-800">${mov.description}</p><p class="text-xs text-gray-500">${formattedDate}</p></div></div><div class="flex items-center gap-4"><span class="font-bold ${amountClass}">${isIncome ? '+' : ''}€${mov.amount.toFixed(2)}</span><span class="action-btn" data-id="${mov.id}" data-type="${mov.type}" data-action="delete-movement">🗑️</span></div></div>`;
+            });
+        }
+
+        function updateCharts() {
+            savingsChart.data.datasets[0].data = state.annualSavings; savingsChart.update();
+            const categorySpends = state.expenses.reduce((acc, e) => { acc[e.category] = (acc[e.category] || 0) + e.amount; return acc; }, {});
+            categoryChart.data.labels = Object.keys(categorySpends); categoryChart.data.datasets[0].data = Object.values(categorySpends); categoryChart.update();
+        }
+
+        incomeForm.addEventListener('submit', (e) => { e.preventDefault(); const description = document.getElementById('income-description').value; const amount = parseFloat(document.getElementById('income-amount').value); state.incomes.push({ id: Date.now(), date: new Date().toISOString(), description, amount }); showToast('✅ Ingreso añadido'); incomeForm.reset(); renderAll(); });
+        expenseForm.addEventListener('submit', (e) => { e.preventDefault(); const description = document.getElementById('expense-description').value; const amount = parseFloat(document.getElementById('expense-amount').value); const category = document.getElementById('expense-category').value; state.expenses.push({ id: Date.now(), date: new Date().toISOString(), description, amount, category }); showToast('✅ Gasto añadido'); expenseForm.reset(); renderAll(); });
+        
+        document.getElementById('movements-history').addEventListener('click', (e) => {
+            if (e.target.dataset.action === 'delete-movement') {
+                const movId = parseInt(e.target.dataset.id); const movType = e.target.dataset.type;
+                if (movType === 'income') state.incomes = state.incomes.filter(i => i.id !== movId);
+                else state.expenses = state.expenses.filter(exp => exp.id !== movId);
+                showToast('🗑️ Movimiento eliminado'); renderAll();
+            }
+        });
+        
+        document.getElementById('reset-month-btn').addEventListener('click', () => { confirmModalOverlay.classList.remove('hidden'); confirmModalOverlay.classList.add('flex'); setTimeout(() => { confirmModalOverlay.classList.remove('opacity-0'); confirmModalContent.classList.remove('scale-95'); }, 10); });
+        function closeConfirmModal() { confirmModalOverlay.classList.add('opacity-0'); confirmModalContent.classList.add('scale-95'); setTimeout(() => { confirmModalOverlay.classList.add('hidden'); confirmModalOverlay.classList.remove('flex'); }, 300); }
+        document.getElementById('modal-cancel').addEventListener('click', closeConfirmModal);
+        document.getElementById('modal-confirm').addEventListener('click', () => {
+            const savedThisMonth = state.incomes.reduce((s, i) => s + i.amount, 0) - state.expenses.reduce((s, e) => s + e.amount, 0);
+            if (savedThisMonth > 0) {
+                let remaining = savedThisMonth; state.goals.forEach(g => { const needed = g.target - g.saved; if (remaining > 0 && needed > 0) { const add = Math.min(remaining, needed); g.saved += add; remaining -= add; } });
+                state.annualSavings[new Date().getMonth()] = savedThisMonth;
+            }
+            state.incomes = []; state.expenses = []; showToast('🎉 ¡Nuevo mes comenzado!'); closeConfirmModal(); renderAll();
+        });
+
+        function openGoalModal(goal = null) {
+            goalForm.reset(); document.getElementById('goal-id').value = '';
+            if (goal) { document.getElementById('goal-modal-title').textContent = 'Editar Meta Mágica'; document.getElementById('goal-id').value = goal.id; document.getElementById('goal-name').value = goal.name; document.getElementById('goal-target').value = goal.target; document.getElementById('goal-saved').value = goal.saved; }
+            else { document.getElementById('goal-modal-title').textContent = 'Nueva Meta Mágica'; }
+            goalModalOverlay.classList.remove('hidden'); goalModalOverlay.classList.add('flex'); setTimeout(() => { goalModalOverlay.classList.remove('opacity-0'); goalModalContent.classList.remove('scale-95'); }, 10);
+        }
+        function closeGoalModal() { goalModalOverlay.classList.add('opacity-0'); goalModalContent.classList.add('scale-95'); setTimeout(() => { goalModalOverlay.classList.add('hidden'); goalModalOverlay.classList.remove('flex'); }, 300); }
+
+        document.getElementById('add-goal-btn').addEventListener('click', () => openGoalModal());
+        document.getElementById('goal-modal-cancel').addEventListener('click', closeGoalModal);
+        document.getElementById('goals-list').addEventListener('click', (e) => {
+            const target = e.target.closest('.action-btn'); if (!target) return;
+            const goalId = parseInt(target.dataset.goalId); const action = target.dataset.action;
+            if (action === 'edit') { const goal = state.goals.find(g => g.id === goalId); openGoalModal(goal); }
+            else if (action === 'delete') { if (confirm('¿Segura que quieres eliminar esta meta?')) { state.goals = state.goals.filter(g => g.id !== goalId); showToast('🗑️ Meta eliminada'); renderAll(); } }
+        });
+        goalForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('goal-id').value);
+            const goalData = { name: document.getElementById('goal-name').value, target: parseFloat(document.getElementById('goal-target').value), saved: parseFloat(document.getElementById('goal-saved').value) };
+            if (id) { const index = state.goals.findIndex(g => g.id === id); state.goals[index] = { ...state.goals[index], ...goalData }; showToast('💾 Meta actualizada'); }
+            else { state.goals.push({ id: Date.now(), ...goalData }); showToast('🎯 ¡Nueva meta creada!'); }
+            closeGoalModal(); renderAll();
+        });
+
+        initCharts(); loadState(); renderAll();
+    });
+    </script>
+</body>
+</html>
+
